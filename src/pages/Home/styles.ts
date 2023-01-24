@@ -104,6 +104,10 @@ export const StartCountDownButton = styled.button`
     cursor: not-allowed;
   }
 
+  &:focus {
+    box-shadow: none;
+  }
+
   &:not(:disabled):hover {
     background: ${({ theme }) => theme['green-700']};
     transition: 0.5s;

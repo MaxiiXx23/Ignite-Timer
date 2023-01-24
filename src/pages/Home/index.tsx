@@ -1,3 +1,6 @@
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 import { Play } from 'phosphor-react'
 
 import {
@@ -10,10 +13,60 @@ import {
   StartCountDownButton,
 } from './styles'
 
+interface INewCycleFormData {
+  task: string
+  minutesAmount: number
+}
+
+const createNewCycleValidationSchema = zod.object({
+  task: zod.string().trim().min(1, 'Informe uma tarefa.'),
+  minutesAmount: zod.number().min(5).max(60),
+})
+
 export function Home() {
+  // Uncontrolled Form
+  const {
+    register,
+    watch,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<INewCycleFormData>({
+    resolver: zodResolver(createNewCycleValidationSchema),
+    defaultValues: {
+      task: '',
+      minutesAmount: 0,
+    },
+  })
+
+  function handleCreateNewCycle(data: INewCycleFormData) {
+    console.log(data.minutesAmount)
+  }
+
+  console.log(errors.minutesAmount?.message)
+
+  const task = watch('task')
+  const isSubmitDisabled = !task
+
+  /* 
+    Controlled Form
+    
+    const [task, setTask] = useState('')
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+
+    const target = event.target as typeof event.target & {
+      task: {
+        value: string
+      }
+    }
+
+    console.log(target.task.value)
+  } */
+
   return (
     <HomeContainer>
-      <form>
+      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
         <FormContainer>
           <label htmlFor="task">Vou trabalhar em</label>
           <TaskInput
@@ -21,6 +74,7 @@ export function Home() {
             list="tasks-suggestions"
             type="text"
             placeholder="Dê um nome para o seu projeto"
+            {...register('task')}
           />
 
           <datalist id="tasks-suggestions">
@@ -37,7 +91,8 @@ export function Home() {
             placeholder="00"
             step={5}
             min={5}
-            max={60}
+            // max={60}
+            {...register('minutesAmount', { valueAsNumber: true })}
           />
           <span>minutos.</span>
         </FormContainer>
@@ -51,7 +106,7 @@ export function Home() {
           <span>0</span>
           <span>0</span>
         </CountdownContainer>
-        <StartCountDownButton type="submit">
+        <StartCountDownButton type="submit" disabled={isSubmitDisabled}>
           <Play size={24} /> Começar
         </StartCountDownButton>
       </form>
