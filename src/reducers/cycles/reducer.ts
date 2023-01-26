@@ -1,3 +1,4 @@
+import produce from "immer"
 export interface ICycle {
   id: string
   task: string
@@ -5,7 +6,6 @@ export interface ICycle {
   startDate: Date
   interruptDate?: Date
   finishedDate?: Date
-  // isActiveCycle: boolean <-- outra maneira de sabe se o ciclo está ativo ou não
 }
 
 interface ICycleStateReducer {
@@ -19,7 +19,12 @@ export enum ActionTypes {
   'MARK_CURRENT_CYCLE_AS_FINISHED' = 'MARK_CURRENT_CYCLE_AS_FINISHED',
 }
 
-export function cyclesReducer(state: ICycleStateReducer, action: any) {
+interface IActions {
+  type: ActionTypes
+  payload?: any
+}
+
+export function cyclesReducer(state: ICycleStateReducer, action: IActions) {
   switch (action.type) {
     case ActionTypes.ADD_NEW_CYCLE:
       return {
@@ -28,8 +33,10 @@ export function cyclesReducer(state: ICycleStateReducer, action: any) {
         activeCycleId: action.payload.id,
       }
 
-    case ActionTypes.INTERRUP_CURRENT_CYCLE:
-      return {
+    case ActionTypes.INTERRUP_CURRENT_CYCLE: {
+
+      /* 
+        return {
         ...state,
         cycles: state.cycles.map((cycle) => {
           if (cycle.id === state.activeCycleId) {
@@ -41,6 +48,27 @@ export function cyclesReducer(state: ICycleStateReducer, action: any) {
         }),
         activeCycleId: null,
       }
+
+      */
+      // exemplo da implementação do immer no projeto, para utilizarmos mutabilidade em estado imutáveis
+      
+      const indexCycleFound = state.cycles.findIndex((cycle) => cycle.id === state.activeCycleId)
+
+      if(indexCycleFound < 0) {
+        return {...state}
+      }
+
+      const stateCycle = produce(state, draft => {
+        draft.activeCycleId = null
+        draft.cycles[indexCycleFound].interruptDate = new Date()
+      }) 
+
+      return {
+        ...stateCycle
+      }
+
+    }
+
     case ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED:
       return {
         ...state,

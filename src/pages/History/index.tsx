@@ -25,7 +25,7 @@ export function History() {
           </thead>
           <tbody>
             {cycles.map((cycle) => {
-              const timePast = formatDistanceToNow(cycle.startDate, {
+              const timePast = formatDistanceToNow(new Date(cycle.startDate), {
                 addSuffix: true,
                 locale: ptBR,
               })
