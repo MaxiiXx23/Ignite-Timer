@@ -1,15 +1,13 @@
-import { ReactNode, createContext, useState } from 'react'
+import { ReactNode, createContext, useReducer, useState } from 'react'
+
 import { v4 as uuidV4 } from 'uuid'
 
-interface ICycle {
-  id: string
-  task: string
-  minutesAmount: number
-  startDate: Date
-  interruptDate?: Date
-  finishedDate?: Date
-  // isActiveCycle: boolean <-- outra maneira de sabe se o ciclo está ativo ou não
-}
+import { ICycle, cyclesReducer } from '../reducers/cycles/reducer'
+import {
+  addNewCycleAction,
+  interruptCurrentCycleAction,
+  markCurrentCycleAsFinishedAction,
+} from '../reducers/cycles/actions'
 
 interface INewCycleFormData {
   task: string
@@ -17,13 +15,13 @@ interface INewCycleFormData {
 }
 
 interface ICyclesContent {
+  cycles: ICycle[]
   activeCycle: ICycle | undefined
   activeCycleId: string | null
   amountSecondsPassed: number
   createNewCycle: (data: INewCycleFormData) => void
   interruptCurrentCycle: () => void
   markCurrentCycleAsFinished: () => void
-  changeActivedCycleIdToNull: () => void
   setSecondsPassed: (seconds: number) => void
 }
 
@@ -35,8 +33,18 @@ interface ICyclesContextProvider {
 export const CyclesContext = createContext<ICyclesContent>({} as ICyclesContent)
 
 export function CyclesContextProvider({ children }: ICyclesContextProvider) {
-  const [cycles, setCycles] = useState<ICycle[]>([])
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  // useReducer
+
+  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
+    cycles: [],
+    activeCycleId: null,
+  })
+
+  /* 
+    // Sem o uso do reducer
+    const [cycles, setCycles] = useState<ICycle[]>([])
+    const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  */
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   function createNewCycle(data: INewCycleFormData) {
@@ -49,15 +57,19 @@ export function CyclesContextProvider({ children }: ICyclesContextProvider) {
       startDate: new Date(),
     }
 
-    setCycles((state) => [...state, newCycle])
-    setActiveCycleId(id)
+    dispatch(addNewCycleAction(newCycle, id))
+    // setActiveCycleId(id)
     setAmountSecondsPassed(0)
-
-    // reset()
   }
 
   function interruptCurrentCycle() {
-    setCycles((state) =>
+    // Com o useReducer
+    dispatch(interruptCurrentCycleAction())
+
+    /* 
+      // Sem o useReducer
+
+      setCycles((state) =>
       state.map((cycle) => {
         if (cycle.id === activeCycleId) {
           document.title = 'Promodoro Ignite'
@@ -67,7 +79,9 @@ export function CyclesContextProvider({ children }: ICyclesContextProvider) {
         }
       }),
     )
-    setActiveCycleId(null)
+    
+    */
+    // setActiveCycleId(null)
   }
 
   function setSecondsPassed(seconds: number) {
@@ -75,32 +89,22 @@ export function CyclesContextProvider({ children }: ICyclesContextProvider) {
   }
 
   function markCurrentCycleAsFinished() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, finishedDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
-    )
+    dispatch(markCurrentCycleAsFinishedAction())
   }
 
-  function changeActivedCycleIdToNull() {
-    setActiveCycleId(null)
-  }
+  const { cycles, activeCycleId } = cyclesState
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   return (
     <CyclesContext.Provider
       value={{
+        cycles,
         activeCycle,
         activeCycleId,
         createNewCycle,
         interruptCurrentCycle,
         markCurrentCycleAsFinished,
-        changeActivedCycleIdToNull,
         amountSecondsPassed,
         setSecondsPassed,
       }}

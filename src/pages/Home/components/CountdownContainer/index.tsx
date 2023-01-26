@@ -8,7 +8,6 @@ export function Countdown() {
   const {
     activeCycle,
     markCurrentCycleAsFinished,
-    changeActivedCycleIdToNull,
     amountSecondsPassed,
     setSecondsPassed,
   } = useContext(CyclesContext)
@@ -27,7 +26,6 @@ export function Countdown() {
         if (diffInSeconds >= totalSeconds) {
           markCurrentCycleAsFinished()
           setSecondsPassed(totalSeconds)
-          changeActivedCycleIdToNull()
           clearInterval(interval)
           document.title = 'Promodoro finalizado!'
         } else {
@@ -39,13 +37,7 @@ export function Countdown() {
     return () => {
       clearInterval(interval)
     }
-  }, [
-    activeCycle,
-    totalSeconds,
-    markCurrentCycleAsFinished,
-    changeActivedCycleIdToNull,
-    setSecondsPassed,
-  ])
+  }, [activeCycle, totalSeconds, markCurrentCycleAsFinished, setSecondsPassed])
 
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
 
