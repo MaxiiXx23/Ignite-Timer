@@ -23,8 +23,6 @@ export function Form() {
       <datalist id="tasks-suggestions">
         <option value="Projeto 1" />
         <option value="Projeto 2" />
-        <option value="Projeto 3" />
-        <option value="Zapzap" />
       </datalist>
 
       <label htmlFor="minutesAmount">durante</label>
